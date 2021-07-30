@@ -304,6 +304,10 @@ abstract class PKPSubmissionService implements EntityPropertyInterface, EntityRe
 	 * @param $submission Submission
 	 */
 	public function getPropertyReviewAssignments($submission) {
+		$submissionCommentDao =& DAORegistry::getDAO('SubmissionCommentDAO');
+		$reviewFormResponseDao =& DAORegistry::getDAO('ReviewFormResponseDAO');
+		$reviewFormElementDao =& DAORegistry::getDAO('ReviewFormElementDAO');
+		$textSeparator = '------------------------------------------------------';
 
 		$reviewAssignments = $this->getReviewAssignments($submission);
 
@@ -322,7 +326,7 @@ abstract class PKPSubmissionService implements EntityPropertyInterface, EntityRe
 			$due = is_null($reviewAssignment->getDateDue()) ? null : strftime($dateFormatShort, strtotime($reviewAssignment->getDateDue()));
 			$responseDue = is_null($reviewAssignment->getDateResponseDue()) ? null : strftime($dateFormatShort, strtotime($reviewAssignment->getDateResponseDue()));
 
-			$reviews[] = array(
+			$reviewArray = array(
 				'id' => (int) $reviewAssignment->getId(),
 				'isCurrentUserAssigned' => $currentUser->getId() == (int) $reviewAssignment->getReviewerId(),
 				'statusId' => (int) $reviewAssignment->getStatus(),
@@ -331,7 +335,76 @@ abstract class PKPSubmissionService implements EntityPropertyInterface, EntityRe
 				'responseDue' => $responseDue,
 				'round' => (int) $reviewAssignment->getRound(),
 				'roundId' => (int) $reviewAssignment->getReviewRoundId(),
+				'reviewerId' => $reviewAssignment->getReviewerId(),
+				'dateNotified' => $reviewAssigment.getDateNotified(),
+				'dateAssigned' => $reviewAssigment.getDateAssigned(),
+				'dateConfirmed' => $reviewAssigment.getDateConfirmed(),
+				'dateCompleted' => $reviewAssigment.getDateCompleted(),
+				'recommendation' => $reviewAssignment.getRecommendation(),
 			);
+			$comments = $submissionCommentDAO->getSubmissionComments($reviewAssignment->getSubmissionId(), COMMENT_TYPE_PEER_REVIEW, $reviewAssignment->getId());
+			$reviewComments = "";
+			$reviewCommentsEditor = "";
+			if ($reviewAssignment->getDateCompleted() != null) {
+				// Get the comments associated with this review assignment
+				$submissionComments = $submissionCommentDao->getSubmissionComments($submission->getId(), COMMENT_TYPE_PEER_REVIEW, $reviewAssignment->getId());
+
+				while ($comment = $submissionComments->next()) {
+					// If the comment is viewable by the author, then add the comment.
+					if ($comment->getViewable()) {
+						$reviewComments .= $comment->getComments();
+						$reviewComments .= "<br>$textSeparator<br><br>";
+					} else {
+						$reviewCommentsEditor .= $comment->getComments();
+						$reviewCommentsEditor .= "<br>$textSeparator<br><br>";
+					}
+				}
+
+				if ($reviewFormId = $reviewAssignment->getReviewFormId()) {
+					$reviewId = $reviewAssignment->getId();
+
+
+					$reviewFormElements = $reviewFormElementDao->getByReviewFormId($reviewFormId);
+					if(!$submissionComments) {
+						$reviewComments .= "$textSeparator<br>";
+
+					}
+					while ($reviewFormElement = $reviewFormElements->next()) {
+						if (!$reviewFormElement->getIncluded()) continue;
+
+						$reviewComments .= $reviewFormElement->getLocalizedQuestion();
+						$reviewFormResponse = $reviewFormResponseDao->getReviewFormResponse($reviewId, $reviewFormElement->getId());
+
+						if ($reviewFormResponse) {
+							$possibleResponses = $reviewFormElement->getLocalizedPossibleResponses();
+							if (in_array($reviewFormElement->getElementType(), array(REVIEW_FORM_ELEMENT_TYPE_CHECKBOXES, REVIEW_FORM_ELEMENT_TYPE_RADIO_BUTTONS))) {
+								ksort($possibleResponses);
+								$possibleResponses = array_values($possibleResponses);
+							}
+							if (in_array($reviewFormElement->getElementType(), $reviewFormElement->getMultipleResponsesElementTypes())) {
+								if ($reviewFormElement->getElementType() == REVIEW_FORM_ELEMENT_TYPE_CHECKBOXES) {
+									$reviewComments .= '<ul>';
+									foreach ($reviewFormResponse->getValue() as $value) {
+										$reviewComments .= '<li>' . $possibleResponses[$value] . '</li>';
+									}
+									$reviewComments .= '</ul>';
+								} else {
+									$reviewComments .= '<blockquote>' . $possibleResponses[$reviewFormResponse->getValue()] . '</blockquote>';
+								}
+								$reviewComments .= '<br>';
+							} else {
+								$reviewComments .= '<blockquote>' . nl2br(htmlspecialchars($reviewFormResponse->getValue())) . '</blockquote>';
+							}
+						}
+
+					}
+					$reviewComments .= "$textSeparator<br><br>";
+
+				}
+			}
+			$reviewArray["comments"] = $reviewComments;
+			$reviewArray["commentsEditor"] = $reviewCommentsEditor;
+			reviews[] = $reviewArray;
 		}
 
 		return $reviews;
