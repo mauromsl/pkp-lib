@@ -252,6 +252,28 @@ abstract class PKPSubmissionService implements EntityPropertyInterface, EntityRe
 		$values = Services::get('schema')->addMissingMultilingualValues(SCHEMA_SUBMISSION, $values, $request->getContext()->getSupportedSubmissionLocales());
 
 		\HookRegistry::call('Submission::getProperties::values', array(&$values, $submission, $props, $args));
+		$stageAssignmentDao = DAORegistry::getDAO('StageAssignmentDAO'); /* @var $stageAssignmentDao StageAssignmentDAO */
+
+		$authorAssignments = $stageAssignmentDao->getBySubmissionAndRoleId($submission->getId(), ROLE_ID_AUTHOR);
+		$authorIds = [];
+		while ($assignment = $authorAssignments->next()) {
+			$authorIds[] = (int) $assignment->getUserId();
+		}
+		$values["authors"] = $authorIds;
+
+		$editorAssignments = $stageAssignmentDao->getBySubmissionAndRoleId($submission->getId(), ROLE_ID_MANAGER);
+		$editorIds = [];
+		while ($assignment = $editorAssignments->next()) {
+			$editorIds[] = (int) $assignment->getUserId();
+		}
+		$values["editors"] = $editorIds;
+
+		$sectionEditorAssignments = $stageAssignmentDao->getBySubmissionAndRoleId($submission->getId(), ROLE_ID_SUB_EDITOR);
+		$sectionEditorIds = [];
+		while ($assignment = $sectionEditorAssignments->next()) {
+			$sectionEditorIds[] = (int) $assignment->getUserId();
+		}
+		$values["section-editors"] = $sectionEditorIds;
 
 		ksort($values);
 
