@@ -336,13 +336,13 @@ abstract class PKPSubmissionService implements EntityPropertyInterface, EntityRe
 				'round' => (int) $reviewAssignment->getRound(),
 				'roundId' => (int) $reviewAssignment->getReviewRoundId(),
 				'reviewerId' => $reviewAssignment->getReviewerId(),
-				'dateNotified' => $reviewAssigment.getDateNotified(),
-				'dateAssigned' => $reviewAssigment.getDateAssigned(),
-				'dateConfirmed' => $reviewAssigment.getDateConfirmed(),
-				'dateCompleted' => $reviewAssigment.getDateCompleted(),
-				'recommendation' => $reviewAssignment.getRecommendation(),
+				'dateNotified' => $reviewAssignment->getDateNotified(),
+				'dateAssigned' => $reviewAssignment->getDateAssigned(),
+				'dateConfirmed' => $reviewAssignment->getDateConfirmed(),
+				'dateCompleted' => $reviewAssignment->getDateCompleted(),
+				'recommendation' => $reviewAssignment->getRecommendation(),
 			);
-			$comments = $submissionCommentDAO->getSubmissionComments($reviewAssignment->getSubmissionId(), COMMENT_TYPE_PEER_REVIEW, $reviewAssignment->getId());
+			$comments = $submissionCommentDao->getSubmissionComments($reviewAssignment->getSubmissionId(), COMMENT_TYPE_PEER_REVIEW, $reviewAssignment->getId());
 			$reviewComments = "";
 			$reviewCommentsEditor = "";
 			if ($reviewAssignment->getDateCompleted() != null) {
@@ -404,7 +404,7 @@ abstract class PKPSubmissionService implements EntityPropertyInterface, EntityRe
 			}
 			$reviewArray["comments"] = $reviewComments;
 			$reviewArray["commentsEditor"] = $reviewCommentsEditor;
-			reviews[] = $reviewArray;
+			$reviews[] = $reviewArray;
 		}
 
 		return $reviews;

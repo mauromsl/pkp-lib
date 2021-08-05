@@ -113,6 +113,7 @@ class PKPSubmissionFileHandler extends APIHandler {
 		foreach ($slimRequest->getQueryParams() as $param => $val) {
 			switch ($param) {
 				case 'fileStages':
+				case 'reviewIds':
 				case 'reviewRoundIds':
 					if (is_string($val)) {
 						$val = explode(',', $val);
@@ -144,6 +145,7 @@ class PKPSubmissionFileHandler extends APIHandler {
 				SUBMISSION_FILE_PRODUCTION_READY,
 				SUBMISSION_FILE_ATTACHMENT,
 				SUBMISSION_FILE_REVIEW_REVISION,
+				SUBMISSION_FILE_REVIEW_ATTACHMENT,
 				SUBMISSION_FILE_INTERNAL_REVIEW_FILE,
 				SUBMISSION_FILE_INTERNAL_REVIEW_REVISION,
 			];
@@ -295,7 +297,6 @@ class PKPSubmissionFileHandler extends APIHandler {
 		// Review attachments and discussion files can not be uploaded through this API endpoint
 		$notAllowedFileStages = [
 			SUBMISSION_FILE_NOTE,
-			SUBMISSION_FILE_REVIEW_ATTACHMENT,
 			SUBMISSION_FILE_QUERY,
 		];
 		if (in_array($params['fileStage'], $notAllowedFileStages)) {
