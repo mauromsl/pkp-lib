@@ -141,6 +141,11 @@
 			"readOnly": true,
 			"apiSummary": true
 		},
+		"issueId": {
+			"type": "integer",
+			"readOnly": true,
+			"apiSummary": true
+		},
 		"keywords": {
 			"type": "array",
 			"description": "Optional metadata, usually one- to three-word phrases that are used to indicate the main topics of a submission.",
