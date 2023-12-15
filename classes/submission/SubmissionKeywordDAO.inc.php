@@ -54,6 +54,7 @@ class SubmissionKeywordDAO extends ControlledVocabDAO {
 		$submissionKeywords = $submissionKeywordEntryDao->getByControlledVocabId($keywords->getId());
 		while ($keywordEntry = $submissionKeywords->next()) {
 			$keyword = $keywordEntry->getKeyword();
+			if ($keyword !== NULL) {
 			foreach ($keyword as $locale => $value) {
 				if (empty($locales) || in_array($locale, $locales)) {
 					if (!array_key_exists($locale, $result)) {
@@ -61,6 +62,7 @@ class SubmissionKeywordDAO extends ControlledVocabDAO {
 					}
 					$result[$locale][] = $value;
 				}
+			}
 			}
 		}
 

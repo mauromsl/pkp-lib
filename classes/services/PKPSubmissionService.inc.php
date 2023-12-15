@@ -274,6 +274,7 @@ abstract class PKPSubmissionService implements EntityPropertyInterface, EntityRe
 			$sectionEditorIds[] = (int) $assignment->getUserId();
 		}
 		$values["section-editors"] = $sectionEditorIds;
+		//here
 
 		ksort($values);
 
